@@ -1,0 +1,1 @@
+# Arrray-Dimanis-Example
