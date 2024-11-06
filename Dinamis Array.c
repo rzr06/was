@@ -130,3 +130,88 @@ int cariData(DataAngin *data, int jumlah, int jam, int menit) {
     }
     return -1;
 }
+
+
+// =================================================================================================================================================================================================================
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct {
+    char kode[10], nama[50];
+    int Qty;
+} Barang;
+
+void tampilkanMenu() {
+    printf("Menu Gudang\n[1] Catat barang masuk\n[2] Lihat daftar barang masuk\n");
+    printf("[3] Hapus data barang masuk\n[5] Rekam ke file CSV\n[9] Keluar\nPilihan Anda: ");
+}
+
+void tampilkanDaftar(Barang *barang, int jumlahBarang) {
+    printf("\nNo  KodeBarang  NamaBarang                Qty\n");
+    if (jumlahBarang == 0) printf("Tidak ada data tercatat.\n");
+    else for (int i = 0; i < jumlahBarang; i++)
+        printf("%-3d %-10s %-20s %d\n", i + 1, barang[i].kode, barang[i].nama, barang[i].Qty);
+}
+
+void tambahBarang(Barang *barang) {
+    printf("Masukan kode barang: ");
+    scanf("%s", barang->kode);
+    printf("Masukan nama barang: ");
+    scanf(" %[^\n]", barang->nama);
+    printf("Masukan jumlah barang: ");
+    scanf("%d", &barang->Qty);
+}
+
+void hapusBarang(Barang *barang, int *jumlahBarang) {
+    int noHapus; char yakin;
+    tampilkanDaftar(barang, *jumlahBarang);
+    printf("Nomor yang dihapus: ");
+    scanf("%d", &noHapus);
+    printf("Yakin dihapus? [Y/T] ");
+    scanf(" %c", &yakin);
+    if (yakin == 'Y' || yakin == 'y') {
+        for (int i = noHapus - 1; i < *jumlahBarang - 1; i++) barang[i] = barang[i + 1];
+        (*jumlahBarang)--;
+        printf("Barang berhasil dihapus.\n");
+        tampilkanDaftar(barang, *jumlahBarang);
+    } else printf("Penghapusan dibatalkan.\n");
+}
+
+void rekamKeCSV(Barang *barang, int jumlahBarang) {
+    FILE *file = fopen("DATAKU.CSV", "w");
+    if (!file) { printf("Gagal buka file.\n"); return; }
+    fprintf(file, "No,KodeBarang,NamaBarang,Qty\n");
+    for (int i = 0; i < jumlahBarang; i++)
+        fprintf(file, "%d,%s,%s,%d\n", i + 1, barang[i].kode, barang[i].nama, barang[i].Qty);
+    fclose(file);
+    printf("Berhasil direkam ke file csv\n");
+}
+
+int main() {
+    Barang *barang = NULL;
+    int pilihan, jumlahBarang = 0, kapasitas = 0;
+    char lanjut;
+    while (1) {
+        tampilkanMenu();
+        scanf("%d", &pilihan);
+        switch (pilihan) {
+        case 1:
+            do {
+                if (jumlahBarang >= kapasitas) {
+                    kapasitas += 10;
+                    barang = realloc(barang, kapasitas * sizeof(Barang));
+                    if (!barang) { printf("Gagal menambah data.\n"); exit(1); }
+                }
+                tambahBarang(&barang[jumlahBarang++]);
+                printf("Masih ada data? [Y/T] ");
+                scanf(" %c", &lanjut);
+            } while (lanjut == 'Y' || lanjut == 'y');
+            break;
+        case 2: tampilkanDaftar(barang, jumlahBarang); break;
+        case 3: jumlahBarang ? hapusBarang(barang, &jumlahBarang) : printf("Tidak ada data tercatat.\n"); break;
+        case 5: jumlahBarang ? rekamKeCSV(barang, jumlahBarang) : printf("Tidak ada data tercatat.\n"); break;
+        case 9: printf("Terimakasih, Program telah selesai.\n"); free(barang); return 0;
+        default: printf("Pilihan tidak valid.\n");
+        }
+    }
+}
